@@ -55,6 +55,9 @@ public class TokenProvider {
                 .signWith(key, SignatureAlgorithm.HS512)
                 .compact();
 
+        log.info("Generated Access Token: {}", accessToken);
+        log.info("Generated Refresh Token: {}", refreshToken);
+
         return TokenDto.builder()
                 .grantType(BEARER_TYPE)
                 .accessToken(accessToken)

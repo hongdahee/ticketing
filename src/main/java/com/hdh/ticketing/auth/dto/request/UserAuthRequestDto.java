@@ -20,6 +20,7 @@ public class UserAuthRequestDto {
     public SiteUser toSiteUser(PasswordEncoder passwordEncoder){
         SiteUser.SiteUserBuilder builder = SiteUser.builder()
                 .username(this.username)
+                .password(this.password)
                 .password(passwordEncoder.encode(this.password))
                 .email(this.email)
                 .nickname(this.nickname)

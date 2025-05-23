@@ -1,9 +1,11 @@
 package com.hdh.ticketing.auth.controller;
 
+import com.hdh.ticketing.auth.dto.request.LogoutRequestDto;
 import com.hdh.ticketing.auth.dto.request.UserAuthRequestDto;
 import com.hdh.ticketing.auth.dto.response.UserAuthResponseDto;
 import com.hdh.ticketing.auth.service.AuthService;
 import com.hdh.ticketing.security.jwt.dto.TokenDto;
+import com.hdh.ticketing.security.jwt.dto.request.TokenRequestDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,4 +29,14 @@ public class AuthController {
         return ResponseEntity.ok(authService.login(userAuthRequestDto));
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<?> login(@RequestBody LogoutRequestDto logoutRequestDto){
+        authService.logout(logoutRequestDto);
+        return ResponseEntity.ok("로그아웃 성공");
+    }
+
+    @PostMapping("/reissue")
+    public ResponseEntity<TokenDto> reissue(@RequestBody TokenRequestDto tokenRequestDto){
+        return ResponseEntity.ok(authService.reissue(tokenRequestDto));
+    }
 }
