@@ -1,20 +1,19 @@
 package com.hdh.ticketing.security.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hdh.ticketing.auth.oauth.handler.OAuth2SuccessHandler;
+import com.hdh.ticketing.auth.oauth.service.CustomOAuth2UserService;
 import com.hdh.ticketing.auth.service.LogoutHandlerImpl;
-import com.hdh.ticketing.security.jwt.JwtAccessDeniedHandler;
+import com.hdh.ticketing.security.jwt.handler.JwtAccessDeniedHandler;
 import com.hdh.ticketing.security.jwt.JwtAuthenticationEntryPoint;
 import com.hdh.ticketing.security.jwt.JwtFilter;
 import com.hdh.ticketing.security.jwt.TokenProvider;
-import com.hdh.ticketing.security.jwt.config.JwtSecurityConfig;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -22,10 +21,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.filter.CorsFilter;
-
-import java.util.HashMap;
-
-import static com.fasterxml.jackson.databind.type.LogicalType.Map;
 
 @Configuration
 @EnableWebSecurity
@@ -36,6 +31,14 @@ public class SecurityConfig {
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
     private final LogoutHandlerImpl logoutHandler;
+    private final CustomOAuth2UserService oAuth2UserService;
+    private final OAuth2SuccessHandler oAuth2SuccessHandler;
+
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() { // security를 적용하지 않을 리소스
+        return web -> web.ignoring()
+                .requestMatchers("/error", "/favicon.ico");
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder(){
@@ -71,6 +74,10 @@ public class SecurityConfig {
                                 response.getWriter().write(message);
                                 }
                         )
+                )
+                .oauth2Login(oauth2 -> oauth2
+                        .userInfoEndpoint(user -> user.userService(oAuth2UserService))
+                        .successHandler(oAuth2SuccessHandler)
                 );
 
         return http.build();
