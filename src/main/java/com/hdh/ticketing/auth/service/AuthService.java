@@ -87,7 +87,4 @@ public class AuthService {
 
         return tokenDto;
     }
-
-    public void logout(LogoutRequestDto logoutRequestDto) {
-    }
 }

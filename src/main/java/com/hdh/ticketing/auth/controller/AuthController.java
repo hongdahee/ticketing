@@ -29,12 +29,6 @@ public class AuthController {
         return ResponseEntity.ok(authService.login(userAuthRequestDto));
     }
 
-    @PostMapping("/logout")
-    public ResponseEntity<?> login(@RequestBody LogoutRequestDto logoutRequestDto){
-        authService.logout(logoutRequestDto);
-        return ResponseEntity.ok("로그아웃 성공");
-    }
-
     @PostMapping("/reissue")
     public ResponseEntity<TokenDto> reissue(@RequestBody TokenRequestDto tokenRequestDto){
         return ResponseEntity.ok(authService.reissue(tokenRequestDto));
