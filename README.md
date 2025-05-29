@@ -24,7 +24,6 @@ JWT 기반 인증, 토큰 보안 처리 등 안정적인 인증 환경을 구축
 
 - **Backend**: Spring Boot, Spring Security, JPA
 - **Database**: MySQL
-- 
 ---
 
 ## 주요 기능
