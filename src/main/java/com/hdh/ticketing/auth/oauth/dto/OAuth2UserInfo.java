@@ -1,5 +1,7 @@
 package com.hdh.ticketing.auth.oauth.dto;
 
+import com.hdh.ticketing.user.domain.Role;
+import com.hdh.ticketing.user.domain.SiteUser;
 import jakarta.security.auth.message.AuthException;
 import lombok.Builder;
 import lombok.Getter;
@@ -37,6 +39,16 @@ public record OAuth2UserInfo(
                 .name((String) profile.get("nickname"))
                 .email((String) account.get("email"))
                 .profile((String) profile.get("profile_image_url"))
+                .build();
+    }
+
+    public SiteUser toEntity(){
+        return SiteUser.builder()
+                .name(name)
+                .nickname(name)
+                .email(email)
+                .profileImg(profile)
+                .role(Role.USER)
                 .build();
     }
 }

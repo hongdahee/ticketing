@@ -64,6 +64,20 @@ public class AuthService {
         return tokenDto;
     }
 
+    public TokenDto socialLogin(Authentication authentication){
+        log.info("Authenticated user: {}", authentication.getName());
+        TokenDto tokenDto = tokenProvider.generateTokenDto(authentication);
+
+        RefreshToken refreshToken = RefreshToken.builder()
+                .key(authentication.getName())
+                .value(tokenDto.getRefreshToken())
+                .build();
+
+        refreshTokenRepository.save(refreshToken);
+
+        return tokenDto;
+    }
+
     public TokenDto reissue(TokenRequestDto tokenRequestDto) {
         if(!tokenProvider.validateToken(tokenRequestDto.getRefreshToken())){
             refreshTokenRepository.findByValue(tokenRequestDto.getRefreshToken())

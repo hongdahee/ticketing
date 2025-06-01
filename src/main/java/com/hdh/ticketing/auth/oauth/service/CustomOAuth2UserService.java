@@ -1,6 +1,10 @@
 package com.hdh.ticketing.auth.oauth.service;
 
+import com.hdh.ticketing.auth.oauth.dto.OAuth2UserInfo;
+import com.hdh.ticketing.security.PrincipalDetails;
+import com.hdh.ticketing.user.domain.SiteUser;
 import com.hdh.ticketing.user.repository.UserRepository;
+import jakarta.security.auth.message.AuthException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -24,13 +28,23 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         String registrationId = userRequest.getClientRegistration().getRegistrationId();
 
-        String userNameAttr = userRequest.getClientRegistration().getProviderDetails()
+        String userNameAttributeName = userRequest.getClientRegistration().getProviderDetails()
                 .getUserInfoEndpoint().getUserNameAttributeName();
 
         Map<String, Object> userAttributes = oAuth2User.getAttributes();
 
+        try {
+            OAuth2UserInfo oAuth2UserInfo = OAuth2UserInfo.of(registrationId, userAttributes);
+            SiteUser user = getOrSave(oAuth2UserInfo);
+            return new PrincipalDetails(user, userAttributes, userNameAttributeName);
+        } catch (AuthException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-
-        return super.loadUser(userRequest);
+    private SiteUser getOrSave(OAuth2UserInfo oAuth2UserInfo){
+        SiteUser user = userRepository.findByEmail(oAuth2UserInfo.email())
+                .orElseGet(oAuth2UserInfo::toEntity);
+        return userRepository.save(user);
     }
 }
