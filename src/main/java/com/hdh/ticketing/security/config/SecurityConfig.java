@@ -6,7 +6,7 @@ import com.hdh.ticketing.auth.service.LogoutHandlerImpl;
 import com.hdh.ticketing.security.jwt.handler.JwtAccessDeniedHandler;
 import com.hdh.ticketing.security.jwt.JwtAuthenticationEntryPoint;
 import com.hdh.ticketing.security.jwt.JwtFilter;
-import com.hdh.ticketing.security.jwt.TokenProvider;
+import com.hdh.ticketing.security.jwt.util.TokenProvider;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

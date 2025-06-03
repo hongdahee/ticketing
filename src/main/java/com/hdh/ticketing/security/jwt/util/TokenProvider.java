@@ -1,4 +1,4 @@
-package com.hdh.ticketing.security.jwt;
+package com.hdh.ticketing.security.jwt.util;
 
 import com.hdh.ticketing.security.jwt.dto.TokenDto;
 import io.jsonwebtoken.*;

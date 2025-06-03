@@ -1,7 +1,7 @@
 package com.hdh.ticketing.security.jwt.config;
 
 import com.hdh.ticketing.security.jwt.JwtFilter;
-import com.hdh.ticketing.security.jwt.TokenProvider;
+import com.hdh.ticketing.security.jwt.util.TokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.config.annotation.SecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;

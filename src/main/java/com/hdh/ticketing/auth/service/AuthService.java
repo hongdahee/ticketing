@@ -1,9 +1,8 @@
 package com.hdh.ticketing.auth.service;
 
-import com.hdh.ticketing.auth.dto.request.LogoutRequestDto;
 import com.hdh.ticketing.auth.dto.request.UserAuthRequestDto;
 import com.hdh.ticketing.auth.dto.response.UserAuthResponseDto;
-import com.hdh.ticketing.security.jwt.TokenProvider;
+import com.hdh.ticketing.security.jwt.util.TokenProvider;
 import com.hdh.ticketing.security.jwt.domain.RefreshToken;
 import com.hdh.ticketing.security.jwt.dto.TokenDto;
 import com.hdh.ticketing.security.jwt.dto.request.TokenRequestDto;
@@ -44,27 +43,13 @@ public class AuthService {
     public TokenDto login(UserAuthRequestDto userAuthRequestDto) {
         SiteUser siteUser = userRepository.findByUsername(userAuthRequestDto.getUsername())
                 .orElseThrow(() -> new RuntimeException("id가 일치하는 사용자가 존재하지 않습니다"));
-//        if(!passwordEncoder.matches(userAuthRequestDto.getPassword(), siteUser.getPassword())){
-//            throw new BadCredentialsException("잘못된 비밀번호입니다");
-//        }
+        if(!passwordEncoder.matches(userAuthRequestDto.getPassword(), siteUser.getPassword())){
+            throw new BadCredentialsException("잘못된 비밀번호입니다");
+        }
 
         UsernamePasswordAuthenticationToken authenticationToken = userAuthRequestDto.toAuthentication();
         Authentication authentication = authenticationManagerBuilder.getObject()
                 .authenticate(authenticationToken);
-        log.info("Authenticated user: {}", authentication.getName());
-        TokenDto tokenDto = tokenProvider.generateTokenDto(authentication);
-
-        RefreshToken refreshToken = RefreshToken.builder()
-                .key(authentication.getName())
-                .value(tokenDto.getRefreshToken())
-                .build();
-
-        refreshTokenRepository.save(refreshToken);
-
-        return tokenDto;
-    }
-
-    public TokenDto socialLogin(Authentication authentication){
         log.info("Authenticated user: {}", authentication.getName());
         TokenDto tokenDto = tokenProvider.generateTokenDto(authentication);
 
