@@ -1,18 +1,23 @@
 package com.hdh.ticketing.auth.controller;
 
 import com.hdh.ticketing.auth.dto.request.UserAuthRequestDto;
+import com.hdh.ticketing.auth.dto.response.LoginResponseDto;
 import com.hdh.ticketing.auth.dto.response.UserAuthResponseDto;
 import com.hdh.ticketing.auth.service.AuthService;
 import com.hdh.ticketing.security.jwt.dto.TokenDto;
 import com.hdh.ticketing.security.jwt.dto.request.TokenRequestDto;
+import com.hdh.ticketing.security.jwt.util.CookieProvider;
+import com.hdh.ticketing.user.domain.SiteUser;
+import com.hdh.ticketing.user.dto.UserInfoDto;
+import com.hdh.ticketing.user.service.UserService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -20,6 +25,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AuthController {
     private final AuthService authService;
+    private final UserService userService;
+    private final CookieProvider cookieProvider;
 
     @PostMapping("/signup")
     public ResponseEntity<UserAuthResponseDto> signup(@RequestBody UserAuthRequestDto userAuthRequestDto){
@@ -27,16 +34,22 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> login(@RequestBody UserAuthRequestDto userAuthRequestDto,
+    public ResponseEntity<LoginResponseDto> login(@RequestBody UserAuthRequestDto userAuthRequestDto,
                                           HttpServletResponse response){
+        // 액세스 토큰 저장
         TokenDto tokenDto = authService.login(userAuthRequestDto);
         response.setHeader("Authorization", "Bearer " + tokenDto.getAccessToken());
-        response.setHeader("X-Refresh-Token", tokenDto.getRefreshToken());
 
-        Map<String, Object> responseBody = new HashMap<>();
-        responseBody.put("message", "로그인에 성공했습니다.");
-        responseBody.put("loginType", "local");
-        return ResponseEntity.ok(responseBody);
+        // 리프레시 토큰 저장
+        ResponseCookie refreshTokenCookie = cookieProvider.createRefreshTokenCookie(tokenDto.getRefreshToken());
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
+
+        SiteUser user = userService.findUserByUsername(userAuthRequestDto.getUsername());
+        UserInfoDto userInfo = new UserInfoDto(user);
+
+        LoginResponseDto loginResponse = new LoginResponseDto(userInfo, "local");
+
+        return ResponseEntity.ok(loginResponse);
     }
 
     @PostMapping("/reissue")
@@ -44,12 +57,10 @@ public class AuthController {
         return ResponseEntity.ok(authService.reissue(tokenRequestDto));
     }
 
-    @GetMapping("/auth/convert")
-    public ResponseEntity<?> convertHeaderFromCookie(@CookieValue("accessToken") String accessToken,
-                                                     @CookieValue("refreshToken") String refreshToken) {
+    @GetMapping("/cookie/convert")
+    public ResponseEntity<?> convertHeaderFromCookie(@CookieValue("accessToken") String accessToken) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + accessToken);
-        headers.add("X-Refresh-Token", refreshToken);
 
         return ResponseEntity.ok()
                 .headers(headers)

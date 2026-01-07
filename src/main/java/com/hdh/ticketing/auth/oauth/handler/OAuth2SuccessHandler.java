@@ -12,6 +12,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -39,17 +41,10 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
         refreshTokenRepository.save(refreshToken);
 
-        Cookie accessTokenCookie = cookieProvider.createAccessTokenCookie(tokenDto.getAccessToken());
-        Cookie refreshTokenCookie = cookieProvider.createRefreshTokenCookie(tokenDto.getRefreshToken());
-        response.addCookie(accessTokenCookie);
-        response.addCookie(refreshTokenCookie);
-        response.sendRedirect("http://localhost:5173/token-sync");
-
-//        response.setContentType("application/json");
-//        response.setCharacterEncoding("UTF-8");
-//        response.setStatus(HttpServletResponse.SC_OK);
-//
-//        ObjectMapper objectMapper = new ObjectMapper();
-//        response.getWriter().write(objectMapper.writeValueAsString(tokenDto));
+        ResponseCookie accessTokenCookie = cookieProvider.createAccessTokenCookie(tokenDto.getAccessToken());
+        ResponseCookie refreshTokenCookie = cookieProvider.createRefreshTokenCookie(tokenDto.getRefreshToken());
+        response.addHeader(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
+        response.sendRedirect("http://localhost:5173/auth/callback");
     }
 }

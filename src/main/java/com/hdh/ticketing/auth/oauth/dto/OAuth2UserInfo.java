@@ -10,9 +10,11 @@ import java.util.Map;
 
 @Builder
 public record OAuth2UserInfo(
+        String username,
         String name,
         String email,
-        String profile
+        String profile,
+        String password
 ) {
 
     public static OAuth2UserInfo of(String registrationId, Map<String, Object> attributes) throws AuthException {
@@ -27,17 +29,22 @@ public record OAuth2UserInfo(
         return OAuth2UserInfo.builder()
                 .name((String) attributes.get("name"))
                 .email((String) attributes.get("email"))
+                .username((String) attributes.get("email"))
                 .profile((String) attributes.get("picture"))
+                .password((String) attributes.get("password"))
                 .build();
     }
 
     private static OAuth2UserInfo ofKakao(Map<String, Object> attributes){
         Map<String, Object> account = (Map<String, Object>) attributes.get("kakao_account");
+        Map<String, Object> password = (Map<String, Object>) attributes.get("password");
         Map<String, Object> profile = (Map<String, Object>) account.get("profile");
 
         return OAuth2UserInfo.builder()
                 .name((String) profile.get("nickname"))
                 .email((String) account.get("email"))
+                .password((String) "1")
+                .username((String) account.get("email"))
                 .profile((String) profile.get("profile_image_url"))
                 .build();
     }
@@ -46,6 +53,8 @@ public record OAuth2UserInfo(
         return SiteUser.builder()
                 .name(name)
                 .nickname(name)
+                .password(password)
+                .username(username)
                 .email(email)
                 .profileImg(profile)
                 .role(Role.USER)

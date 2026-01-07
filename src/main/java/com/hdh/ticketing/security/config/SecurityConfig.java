@@ -65,14 +65,8 @@ public class SecurityConfig {
                 )
                 .logout(logout -> logout.logoutUrl("/auth/logout")
                         .addLogoutHandler(logoutHandler)
-                        .logoutSuccessHandler((request, response, authentication) -> {
-                                    SecurityContextHolder.clearContext();
-                                response.setStatus(HttpServletResponse.SC_OK); // 200 OK
-                                response.setContentType("application/json;charset=UTF-8");
-
-                                String message = "{\"message\": \"로그아웃 성공\"}";
-                                response.getWriter().write(message);
-                                }
+                        .logoutSuccessHandler((request, response, authentication) ->
+                                    SecurityContextHolder.clearContext()
                         )
                 )
                 .oauth2Login(oauth2 -> oauth2
