@@ -2,6 +2,7 @@ package com.hdh.ticketing.auth.service;
 
 import com.hdh.ticketing.auth.dto.request.UserAuthRequestDto;
 import com.hdh.ticketing.auth.dto.response.UserAuthResponseDto;
+import com.hdh.ticketing.security.PrincipalDetails;
 import com.hdh.ticketing.security.jwt.util.TokenProvider;
 import com.hdh.ticketing.security.jwt.domain.RefreshToken;
 import com.hdh.ticketing.security.jwt.dto.TokenDto;
@@ -15,6 +16,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,8 +55,11 @@ public class AuthService {
         log.info("Authenticated user: {}", authentication.getName());
         TokenDto tokenDto = tokenProvider.generateTokenDto(authentication);
 
+        PrincipalDetails principal = (PrincipalDetails) authentication.getPrincipal();
+        SiteUser user = principal.user();
+
         RefreshToken refreshToken = RefreshToken.builder()
-                .key(authentication.getName())
+                .user(user)
                 .value(tokenDto.getRefreshToken())
                 .build();
 
@@ -63,25 +68,24 @@ public class AuthService {
         return tokenDto;
     }
 
-    public TokenDto reissue(TokenRequestDto tokenRequestDto) {
-        if(!tokenProvider.validateToken(tokenRequestDto.getRefreshToken())){
-            refreshTokenRepository.findByValue(tokenRequestDto.getRefreshToken())
+    public TokenDto reissue(String refreshTokenValue) {
+        // Refresh Token 유효성 검사
+        if(!tokenProvider.validateToken(refreshTokenValue)){
+            refreshTokenRepository.findByValue(refreshTokenValue)
                     .ifPresent(refreshTokenRepository::delete);
             throw new RuntimeException("Refresh Token이 유효하지 않습니다.");
         }
 
-        Authentication authentication = tokenProvider.getAuthentication(tokenRequestDto.getAccessToken());
-
-        RefreshToken refreshToken = refreshTokenRepository.findByKey(authentication.getName())
+        // DB에서 RT 찾기
+        RefreshToken storedRefreshToken = refreshTokenRepository.findByValue(refreshTokenValue)
                 .orElseThrow(() -> new RuntimeException("로그아웃 된 사용자입니다."));
 
-        if(!refreshToken.getValue().equals(tokenRequestDto.getRefreshToken())){
-            throw new RuntimeException("토큰의 유저 정보가 일치하지 않습니다.");
-        }
+        // 토큰과 연결된 유저 찾기
+        SiteUser user = storedRefreshToken.getUser();
 
-        TokenDto tokenDto = tokenProvider.generateTokenDto(authentication);
+        TokenDto tokenDto = tokenProvider.generateTokenDto(user);
 
-        RefreshToken newRefreshToken = refreshToken.updateValue(tokenDto.getRefreshToken());
+        RefreshToken newRefreshToken = storedRefreshToken.updateValue(tokenDto.getRefreshToken());
         refreshTokenRepository.save(newRefreshToken);
 
         return tokenDto;

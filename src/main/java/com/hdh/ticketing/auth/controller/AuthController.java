@@ -5,12 +5,10 @@ import com.hdh.ticketing.auth.dto.response.LoginResponseDto;
 import com.hdh.ticketing.auth.dto.response.UserAuthResponseDto;
 import com.hdh.ticketing.auth.service.AuthService;
 import com.hdh.ticketing.security.jwt.dto.TokenDto;
-import com.hdh.ticketing.security.jwt.dto.request.TokenRequestDto;
 import com.hdh.ticketing.security.jwt.util.CookieProvider;
 import com.hdh.ticketing.user.domain.SiteUser;
 import com.hdh.ticketing.user.dto.UserInfoDto;
 import com.hdh.ticketing.user.service.UserService;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -53,8 +51,11 @@ public class AuthController {
     }
 
     @PostMapping("/reissue")
-    public ResponseEntity<TokenDto> reissue(@RequestBody TokenRequestDto tokenRequestDto){
-        return ResponseEntity.ok(authService.reissue(tokenRequestDto));
+    public ResponseEntity<TokenDto> reissue(@CookieValue("refreshToken") String refreshToken){
+        if (refreshToken == null) {
+            throw new RuntimeException("Refresh Token 쿠키가 없습니다.");
+        }
+        return ResponseEntity.ok(authService.reissue(refreshToken));
     }
 
     @GetMapping("/cookie/convert")

@@ -1,5 +1,6 @@
 package com.hdh.ticketing.user.service;
 
+import com.hdh.ticketing.security.PrincipalDetails;
 import com.hdh.ticketing.user.domain.SiteUser;
 import com.hdh.ticketing.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -29,12 +30,13 @@ public class CustomUserDetailsService implements UserDetailsService {
     }
 
     private UserDetails createUserDetails(SiteUser siteUser){
-        GrantedAuthority grantedAuthority = new SimpleGrantedAuthority(siteUser.getAuthorities().toString());
-
-        return new User(
-                String.valueOf(siteUser.getId()),
-                siteUser.getPassword(),
-                Collections.singleton(grantedAuthority)
-        );
+        return new PrincipalDetails(siteUser, null, null);
+//        GrantedAuthority grantedAuthority = new SimpleGrantedAuthority(siteUser.getAuthorities().toString());
+//
+//        return new User(
+//                String.valueOf(siteUser.getId()),
+//                siteUser.getPassword(),
+//                Collections.singleton(grantedAuthority)
+//        );
     }
 }

@@ -17,12 +17,13 @@ public record PrincipalDetails(
 
     @Override
     public String getName() {
-        return attributes.get(attributeKey).toString();
+        return String.valueOf(user.getId());
+//        return attributes.get(attributeKey).toString();
     }
 
     @Override
     public Map<String, Object> getAttributes() {
-        return attributes;
+        return attributes == null ? Collections.emptyMap() : attributes;
     }
 
     @Override
@@ -32,7 +33,7 @@ public record PrincipalDetails(
 
     @Override
     public String getPassword() {
-        return null;
+        return user.getPassword();
     }
 
     @Override

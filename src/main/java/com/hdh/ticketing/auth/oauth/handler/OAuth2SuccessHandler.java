@@ -1,13 +1,13 @@
 package com.hdh.ticketing.auth.oauth.handler;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hdh.ticketing.security.PrincipalDetails;
 import com.hdh.ticketing.security.jwt.util.CookieProvider;
 import com.hdh.ticketing.security.jwt.util.TokenProvider;
 import com.hdh.ticketing.security.jwt.domain.RefreshToken;
 import com.hdh.ticketing.security.jwt.dto.TokenDto;
 import com.hdh.ticketing.security.jwt.repository.RefreshTokenRepository;
+import com.hdh.ticketing.user.domain.SiteUser;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -34,8 +34,11 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         log.info("Authenticated user: {}", authentication.getName());
         TokenDto tokenDto = tokenProvider.generateTokenDto(authentication);
 
+        PrincipalDetails principal = (PrincipalDetails) authentication.getPrincipal();
+        SiteUser user = principal.user(); // PrincipalDetails에 있는 SiteUser 불러오기
+
         RefreshToken refreshToken = RefreshToken.builder()
-                .key(authentication.getName())
+                .user(user)
                 .value(tokenDto.getRefreshToken())
                 .build();
 

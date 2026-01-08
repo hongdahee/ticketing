@@ -1,6 +1,7 @@
 package com.hdh.ticketing.security.jwt.util;
 
 import com.hdh.ticketing.security.jwt.dto.TokenDto;
+import com.hdh.ticketing.user.domain.SiteUser;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Component;
 import java.security.Key;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.stream.Collectors;
 
@@ -35,6 +37,7 @@ public class TokenProvider {
         this.key = Keys.hmacShaKeyFor(keyBytes);
     }
 
+    // Authentication으로 토큰 생성
     public TokenDto generateTokenDto(Authentication authentication){
         String authorities = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
@@ -64,6 +67,24 @@ public class TokenProvider {
                 .accessTokenExpiresIn(accessTokenExpiresIn.getTime())
                 .refreshToken(refreshToken)
                 .build();
+    }
+
+    // SiteUser를 Authentication으로 변환 후 토큰 생성
+    public TokenDto generateTokenDto(SiteUser user) {
+
+        Collection<? extends GrantedAuthority> authorities =
+                Collections.singletonList(
+                        new SimpleGrantedAuthority(user.getRole().name())
+                );
+
+        Authentication authentication =
+                new UsernamePasswordAuthenticationToken(
+                        user.getUsername(), // sub로 들어갈 값
+                        null,
+                        authorities
+                );
+
+        return generateTokenDto(authentication);
     }
 
     public Authentication getAuthentication(String accessToken){

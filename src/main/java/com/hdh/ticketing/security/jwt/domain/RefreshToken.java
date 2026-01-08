@@ -1,8 +1,7 @@
 package com.hdh.ticketing.security.jwt.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
+import com.hdh.ticketing.user.domain.SiteUser;
+import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,15 +12,19 @@ import lombok.NoArgsConstructor;
 public class RefreshToken {
 
     @Id
-    @Column(name = "rt_key")
-    private String key; // member Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    private SiteUser user; // member Id
 
     @Column(name = "rt_value")
     private String value;
 
     @Builder
-    public RefreshToken(String key, String value){
-        this.key = key;
+    public RefreshToken(SiteUser user, String value){
+        this.user = user;
         this.value = value;
     }
 
