@@ -6,7 +6,6 @@ import com.hdh.ticketing.security.PrincipalDetails;
 import com.hdh.ticketing.security.jwt.util.TokenProvider;
 import com.hdh.ticketing.security.jwt.domain.RefreshToken;
 import com.hdh.ticketing.security.jwt.dto.TokenDto;
-import com.hdh.ticketing.security.jwt.dto.request.TokenRequestDto;
 import com.hdh.ticketing.security.jwt.repository.RefreshTokenRepository;
 import com.hdh.ticketing.user.domain.SiteUser;
 import com.hdh.ticketing.user.repository.UserRepository;
@@ -16,7 +15,6 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,10 +56,17 @@ public class AuthService {
         PrincipalDetails principal = (PrincipalDetails) authentication.getPrincipal();
         SiteUser user = principal.user();
 
-        RefreshToken refreshToken = RefreshToken.builder()
-                .user(user)
-                .value(tokenDto.getRefreshToken())
-                .build();
+        // 유저의 유효한 리프레시 토큰이 존재하면 토큰 값을 업데이트, 존재하지 않으면 토큰 생성
+        RefreshToken refreshToken = refreshTokenRepository.findByUserId(user.getId())
+                .orElse(null);
+        if(refreshToken==null){
+            refreshToken = RefreshToken.builder()
+                    .user(user)
+                    .value(tokenDto.getRefreshToken())
+                    .build();
+        } else{
+            refreshToken.updateValue(tokenDto.getRefreshToken());
+        }
 
         refreshTokenRepository.save(refreshToken);
 
