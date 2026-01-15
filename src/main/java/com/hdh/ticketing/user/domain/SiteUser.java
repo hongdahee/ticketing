@@ -15,6 +15,7 @@ import java.util.List;
 
 @Getter
 @Entity
+@Table(name = "site_user")
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -26,8 +27,14 @@ public class SiteUser implements UserDetails {
     @Column(unique = true, nullable = false)
     private String username;
 
-    @Column(nullable = false)
     private String password;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Provider provider; // "local"(일반 로그인), "google", "kakao"
+
+    @Column(unique = true)
+    private String providerId;
 
     @Column(unique = true, nullable = false)
     private String email;

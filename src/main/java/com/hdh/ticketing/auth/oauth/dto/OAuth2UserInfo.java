@@ -1,5 +1,6 @@
 package com.hdh.ticketing.auth.oauth.dto;
 
+import com.hdh.ticketing.user.domain.Provider;
 import com.hdh.ticketing.user.domain.Role;
 import com.hdh.ticketing.user.domain.SiteUser;
 import jakarta.security.auth.message.AuthException;
@@ -10,11 +11,12 @@ import java.util.Map;
 
 @Builder
 public record OAuth2UserInfo(
+        Provider provider, // google, kakao
+        String providerId, // 구글 sub, 카카오 id(유저 식별 id)
         String username,
         String name,
         String email,
-        String profile,
-        String password
+        String profile
 ) {
 
     public static OAuth2UserInfo of(String registrationId, Map<String, Object> attributes) throws AuthException {
@@ -27,25 +29,33 @@ public record OAuth2UserInfo(
 
     private static OAuth2UserInfo ofGoogle(Map<String, Object> attributes){
         return OAuth2UserInfo.builder()
+                .provider(Provider.GOOGLE)
+                .providerId((String) attributes.get("sub"))
                 .name((String) attributes.get("name"))
                 .email((String) attributes.get("email"))
                 .username((String) attributes.get("email"))
                 .profile((String) attributes.get("picture"))
-                .password((String) attributes.get("password"))
                 .build();
     }
 
     private static OAuth2UserInfo ofKakao(Map<String, Object> attributes){
         Map<String, Object> account = (Map<String, Object>) attributes.get("kakao_account");
-        Map<String, Object> password = (Map<String, Object>) attributes.get("password");
-        Map<String, Object> profile = (Map<String, Object>) account.get("profile");
+        Map<String, Object> profile = account == null ? null : (Map<String, Object>) account.get("profile");
+
+        String nickname = profile == null ? null : (String) profile.get("nickname");
+        String profileImg = profile == null ? null : (String) profile.get("profile_image_url");
+        String email = account == null ? null : (String) account.get("email");
+
+        Object idObj = attributes.get("id");
+        String providerId = String.valueOf(idObj);
 
         return OAuth2UserInfo.builder()
-                .name((String) profile.get("nickname"))
-                .email((String) account.get("email"))
-                .password((String) "1")
-                .username((String) account.get("email"))
-                .profile((String) profile.get("profile_image_url"))
+                .provider(Provider.KAKAO)
+                .providerId(providerId)
+                .name(nickname)
+                .email(email)
+                .username(email)
+                .profile(profileImg)
                 .build();
     }
 
@@ -53,8 +63,8 @@ public record OAuth2UserInfo(
         return SiteUser.builder()
                 .name(name)
                 .nickname(name)
-                .password(password)
                 .username(username)
+                .provider(provider)
                 .email(email)
                 .profileImg(profile)
                 .role(Role.USER)

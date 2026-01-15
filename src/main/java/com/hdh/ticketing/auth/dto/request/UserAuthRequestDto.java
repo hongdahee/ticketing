@@ -1,5 +1,6 @@
 package com.hdh.ticketing.auth.dto.request;
 
+import com.hdh.ticketing.user.domain.Provider;
 import com.hdh.ticketing.user.domain.Role;
 import com.hdh.ticketing.user.domain.SiteUser;
 import lombok.Getter;
@@ -22,6 +23,7 @@ public class UserAuthRequestDto {
                 .username(this.username)
                 .password(this.password)
                 .password(passwordEncoder.encode(this.password))
+                .provider(Provider.LOCAL)
                 .email(this.email)
                 .nickname(this.nickname)
                 .name(this.name)
